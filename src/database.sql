@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS VendedorProduto (
     descricaoProduto TEXT,
     preco FLOAT,
     quantidadeDisponivel INT,
-    ID_vendedor INT,
-    ID_Produto INT
+    ID_vendedor UUID,
+    ID_Produto UUID
 );
 
 

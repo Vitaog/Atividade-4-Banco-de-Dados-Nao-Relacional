@@ -1,5 +1,6 @@
 from connect_database import conectar_cassandra
 from produto import criar_produto, deletar_produto, editar_produto, listar_produtos
+from vendedor import adicionar_produto, atualizar_produto, criar_vendedor, deletar_vendedor, editar_vendedor, listar_vendedores, remover_produto
 
 
 key = 0
@@ -80,30 +81,37 @@ while (key != 'S' and key != 's'):
 
          if (sub == '1'):
              print("|-------------------Criação de Vendedor------------------------|")
+             criar_vendedor(session)
              print ("")
         
          elif (sub == '2'):
              print("|----------------Listagem de Vendedor-------------------------|")
+             listar_vendedores(session)
              print ("")
 
          elif (sub == '3'):
              print("|--------------------------------------------------------------|")
+             editar_vendedor(session)
              print ("")   
 
          elif (sub == '4'):
              print("|--------------------------------------------------------------|")
+             deletar_vendedor(session)
              print ("")
             
          elif (sub == '5'):
              print("|--------------------------------------------------------------|")
+             adicionar_produto(session)
              print ("")
         
          elif (sub == '6'):
              print("|--------------------------------------------------------------|")
+             atualizar_produto(session)
              print ("")
         
          elif (sub == '7'):
              print("|--------------------------------------------------------------|")
+             remover_produto(session)
              print ("")
 
         
