@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS Favoritos (
     preco FLOAT,
     nomeVendedor TEXT,
     descricaoProduto TEXT,
-    IdUsuario INT,
+    IdUsuario UUID,
     data DATE
 );
 
@@ -66,8 +66,8 @@ CREATE TABLE IF NOT EXISTS CompraProduto (
     precoUnitario FLOAT,
     quantidade INT,
     subtotal FLOAT,
-    ID_Produto INT,
-    ID_Vendedor INT,
-    ID_Compra INT
+    ID_Produto UUID,
+    ID_Vendedor UUID,
+    ID_Compra UUID
 );
 
