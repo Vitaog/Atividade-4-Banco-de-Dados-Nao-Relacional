@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS VendedorProduto (
 CREATE TABLE IF NOT EXISTS Compra (
     ID UUID PRIMARY KEY,
     total_compra FLOAT,
-    data_compra DATE
+    data_compra DATE,
+    ID_Usuario UUID
 );
 
 
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS CompraProduto (
     subtotal FLOAT,
     ID_Produto UUID,
     ID_Vendedor UUID,
-    ID_Compra UUID
+    ID_Compra UUID,
+    ID_Usuario UUID
 );
 

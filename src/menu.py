@@ -1,6 +1,6 @@
 from connect_database import conectar_cassandra
 from produto import criar_produto, deletar_produto, editar_produto, listar_produtos
-from usuario import adicionar_compra, adicionar_favoritos, criar_usuario, editar_usuario, listar_usuarios, remover_favoritos
+from usuario import adicionar_compra, adicionar_favoritos, cancelar_compra, criar_usuario, deletar_usuario, editar_usuario, listar_usuarios, remover_favoritos
 from vendedor import adicionar_produto, atualizar_produto, criar_vendedor, deletar_vendedor, editar_vendedor, listar_vendedores, remover_produto
 
 
@@ -50,6 +50,7 @@ while (key != 'S' and key != 's'):
 
         elif (sub == '4'):
             print("|--------------------------------------------------------------|")
+            deletar_usuario(session)
             print ("")
         
         elif (sub == '5'):
@@ -69,6 +70,7 @@ while (key != 'S' and key != 's'):
         
         elif (sub == '8'):
             print("|--------------------------------------------------------------|")
+            cancelar_compra(session)
             print ("")
 
             

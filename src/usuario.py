@@ -37,14 +37,14 @@ def listar_usuarios(session):
     print("\nDetalhes do Usuário:")
     print(f"ID: {usuario_selecionado.id}")
     print(f"Nome: {usuario_selecionado.nome}")
-    
+
     query_endereco = """
-        SELECT Rua, Num, Bairro, Cidade, Estado, Cep, Cpf
+        SELECT Rua, Num, Bairro, Cidade, Estado, Cep, CPF
         FROM Usuario
         WHERE ID = %s
     """
     endereco_usuario = session.execute(query_endereco, [usuario_selecionado.id]).one()
-    
+
     print(f"CPF: {endereco_usuario.cpf}")
 
     print("Endereço:")
@@ -54,6 +54,27 @@ def listar_usuarios(session):
     print(f"Cidade: {endereco_usuario.cidade}")
     print(f"Estado: {endereco_usuario.estado}")
     print(f"CEP: {endereco_usuario.cep}")
+
+    # Listar compras do usuário
+    query_compras = """
+        SELECT ID, nomeProduto, nomeVendedor, descricaoProduto, precoUnitario, quantidade, subtotal
+        FROM CompraProduto
+        WHERE ID_Usuario = %s ALLOW FILTERING
+    """
+    compras_usuario = list(session.execute(query_compras, [usuario_selecionado.id]))
+
+    if compras_usuario:
+        print("\nCompras do Usuário:")
+        for compra in compras_usuario:
+            print(f"\nProduto: {compra.nomeproduto}")
+            print(f"Vendedor: {compra.nomevendedor}")
+            print(f"Descrição do Produto: {compra.descricaoproduto}")
+            print(f"Preço Unitário: R${compra.precounitario:.2f}")
+            print(f"Quantidade: {compra.quantidade}")
+            print(f"Subtotal: R${compra.subtotal:.2f}")
+    else:
+        print("\nO usuário ainda não fez nenhuma compra.")
+
 
 def editar_usuario(session):
     query_usuarios = "SELECT * FROM Usuario"
@@ -223,7 +244,6 @@ def remover_favoritos(session):
     print("Favorito removido com sucesso!")
 
 def adicionar_compra(session):
-    # Listar usuários
     query_usuarios = "SELECT ID, Nome FROM Usuario"
     result_usuarios = list(session.execute(query_usuarios))
 
@@ -238,7 +258,6 @@ def adicionar_compra(session):
         print("Seleção inválida.")
         return
 
-    # Listar produtos
     query_produtos = "SELECT * FROM Produto"
     produtos = list(session.execute(query_produtos))
 
@@ -253,7 +272,6 @@ def adicionar_compra(session):
         print("Seleção inválida.")
         return
 
-    # Listar vendedores com o produto associado
     query_vendedores = "SELECT * FROM VendedorProduto WHERE ID_Produto = %s ALLOW FILTERING"
     vendedores = list(session.execute(query_vendedores, [produto_selecionado.id]))
 
@@ -272,7 +290,6 @@ def adicionar_compra(session):
         print("Seleção inválida.")
         return
 
-    # Perguntar sobre a quantidade
     try:
         quantidade = int(input(f"Digite a quantidade desejada do produto '{produto_selecionado.nomeproduto}' (0 para cancelar): "))
         if quantidade == 0:
@@ -281,26 +298,23 @@ def adicionar_compra(session):
         print("Quantidade inválida.")
         return
 
-    # Calcular subtotal
     subtotal = quantidade * vendedor_selecionado.preco
 
-    # Adicionar à tabela Compra
     compra_id = uuid.uuid4()
     total_compra = subtotal
     data_compra = date.today().isoformat()
 
     query_adicionar_compra = """
-        INSERT INTO Compra (ID, total_compra, data_compra)
-        VALUES (%s, %s, %s)
+        INSERT INTO Compra (ID, total_compra, data_compra, ID_Usuario)
+        VALUES (%s, %s, %s, %s)
     """
-    session.execute(query_adicionar_compra, (compra_id, total_compra, data_compra))
+    session.execute(query_adicionar_compra, (compra_id, total_compra, data_compra, usuario_selecionado.id))
 
-    # Adicionar à tabela CompraProduto
     compra_produto_id = uuid.uuid4()
 
     query_adicionar_compra_produto = """
-        INSERT INTO CompraProduto (ID, nomeProduto, nomeVendedor, descricaoProduto, precoUnitario, quantidade, subtotal, ID_Produto, ID_Vendedor, ID_Compra)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO CompraProduto (ID, nomeProduto, nomeVendedor, descricaoProduto, precoUnitario, quantidade, subtotal, ID_Produto, ID_Vendedor, ID_Compra, ID_Usuario)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     session.execute(query_adicionar_compra_produto, (
         compra_produto_id,
@@ -312,7 +326,81 @@ def adicionar_compra(session):
         subtotal,
         produto_selecionado.id,
         vendedor_selecionado.id,
-        compra_id
+        compra_id,
+        usuario_selecionado.id
     ))
 
     print("Compra adicionada com sucesso!")
+
+
+def cancelar_compra(session):
+    query_usuarios = "SELECT ID, Nome FROM Usuario"
+    result_usuarios = list(session.execute(query_usuarios))
+
+    print("Lista de Usuários:")
+    for i, row_usuario in enumerate(result_usuarios, start=1):
+        print(f"{i}. Nome: {row_usuario.nome}")
+
+    try:
+        index_usuario = int(input("Digite o número do usuário desejado: "))
+        usuario_selecionado = result_usuarios[index_usuario - 1]
+    except (ValueError, IndexError):
+        print("Seleção inválida.")
+        return
+
+    query_compras_usuario = "SELECT ID, total_compra, data_compra FROM Compra WHERE ID_Usuario = %s ALLOW FILTERING"
+    compras_usuario = list(session.execute(query_compras_usuario, [usuario_selecionado.id]))
+
+    if not compras_usuario:
+        print("Nenhuma compra encontrada para o usuário selecionado.")
+        return
+
+    print("\nLista de Compras do Usuário:")
+    for i, compra in enumerate(compras_usuario, start=1):
+        print(f"{i}. ID: {compra.id}, Total: {compra.total_compra}, Data: {compra.data_compra}")
+
+    try:
+        index_compra = int(input("Digite o número da compra desejada para cancelar (0 para sair): "))
+        if index_compra == 0:
+            return
+        compra_selecionada = compras_usuario[index_compra - 1]
+    except (ValueError, IndexError):
+        print("Seleção inválida.")
+        return
+
+    query_id_compra_produto = "SELECT ID FROM CompraProduto WHERE ID_Compra = %s ALLOW FILTERING"
+    id_compra_produto = list(session.execute(query_id_compra_produto, [compra_selecionada.id]))
+
+    if not id_compra_produto:
+        print("Nenhum registro encontrado na tabela CompraProduto para a compra selecionada.")
+        return
+
+    query_deletar_compra_produto = "DELETE FROM CompraProduto WHERE ID = %s"
+    session.execute(query_deletar_compra_produto, [id_compra_produto[0].id])
+
+    query_deletar_compra = "DELETE FROM Compra WHERE ID = %s"
+    session.execute(query_deletar_compra, [compra_selecionada.id])
+
+    print("Compra cancelada com sucesso!")
+
+def deletar_usuario(session):
+    # Listar usuários
+    query_usuarios = "SELECT ID, Nome FROM Usuario"
+    result_usuarios = list(session.execute(query_usuarios))
+
+    print("Lista de Usuários:")
+    for i, row_usuario in enumerate(result_usuarios, start=1):
+        print(f"{i}. Nome: {row_usuario.nome}")
+
+    try:
+        index_usuario = int(input("Digite o número do usuário desejado para deletar: "))
+        usuario_selecionado = result_usuarios[index_usuario - 1]
+    except (ValueError, IndexError):
+        print("Seleção inválida.")
+        return
+
+    # Deletar usuário
+    query_deletar_usuario = "DELETE FROM Usuario WHERE ID = %s"
+    session.execute(query_deletar_usuario, [usuario_selecionado.id])
+
+    print("Usuário deletado com sucesso!")
